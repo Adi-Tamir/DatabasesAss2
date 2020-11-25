@@ -1,0 +1,145 @@
+Drop Table if exists OFFICIALEMPLOYEE;
+Drop Table if exists CONSTRUCTOREMPLOYEE;
+Drop Table if exists EMPLOYEE;
+Drop Table if exists CellPhones;
+DROP TABLE if exists Department;
+DROP TABLE if exists ProjectConstructorEmployee;
+DROP TABLE if exists Project;
+DROP TABLE if exists Neighborhood;
+DROP TABLE if exists ParkingArea;
+DROP TABLE if exists CarParking;
+DROP TABLE if exists Car;
+DROP TABLE if exists GarbageCollection;
+DROP TABLE if exists GarbageCollectionCompany;
+DROP TABLE if exists  TrashCan;
+DROP TABLE if exists Address;
+DROP TABLE if exists  Apartment;
+DROP TABLE if exists  Apartment;
+DROP TABLE if exists Resident;
+
+Create Table if not exists EMPLOYEE(
+EID INTEGER PRIMARY KEY, 
+Birthdate datetime,
+FirstName TEXT not NULL,
+LastName TEXT not NULL
+);
+
+CREATE TABLE IF NOT EXISTS OFFICIALEMPLOYEE(
+
+EID PRIMARY KEY REFERENCES EMPLOYEE(EID) on DELETE CASCADE,
+Degree TEXT not NULL,
+StartWork Integer not NULL,
+employee_DID INTEGER REFERENCES Department(DID) on DELETE RESTRICT
+);
+
+CREATE TABLE IF NOT EXISTS CONSTRUCTOREMPLOYEE(
+EID INTEGER Primary Key References EMPLOYEE(EID) on DELETE CASCADE,
+SalaryPerDay INTEGER not NULL,
+CompanyName Text not Null
+);
+
+CREATE Table if not exists CellPhones(
+PhoneNumber Integer check(PhoneNumber >= 2 AND PhoneNumber < 100),
+PID INTEGER,
+FOREIGN KEY(PID) REFERENCES EMPLOYEE(EID),
+CONSTRAINT prime PRIMARY KEY(PhoneNumber,PID)
+);
+
+CREATE Table if not exists Department (
+DID Integer Primary Key AUTOINCREMENT,
+Name Text not null Unique,
+DESC Text,
+HID INTEGER,
+
+Foreign Key(HID) References OFFICIALEMPLOYEE(EID) on DELETE CASCADE
+/*CONSTRAINT a CHECK(DID<1000 and DID >=0)*/
+);
+
+Create Table if not exists ProjectConstructorEmployee(
+EID Integer REFERENCES CONSTRUCTOREMPLOYEE(EID),
+PID Integer References Project(PID),
+StartWorkingDate datetime not null,
+EndWorkingDate datetime not null,
+JobDescription Text,
+CONSTRAINT dseTest CHECK (StartWorkingDate<=EndWorkingDate),
+Primary Key(EID, PID)
+);
+
+Create Table if not exists Project(
+PID Integer Primary Key AUTOINCREMENT,
+Name Text not NULL,
+Desc Text,
+Budget Integer not null,
+NID Integer,
+Foreign key (NID) REFERENCES Neighborhood(NID) on Delete no ACTION
+);
+
+Create Table if not exists Neighborhood(
+NID Integer Primary key AUTOINCREMENT
+);
+
+CREATE Table if not exists ParkingArea(
+AID Integer Primary key AUTOINCREMENT,
+MaxPricePerDay Integer not null,
+PricePerHour Integer not null,
+Name Text,
+parking_NID Integer,
+Foreign key (parking_NID) REFERENCES Neighborhood(NID) on DELETE no ACTION
+);
+
+CREATE Table if not exists CarParking(
+StartTime datetime unique,
+EndTime datetime CONSTRAINT sanity check (Endtime >= StartTime),
+cost integer not null ,
+Car_id Integer,
+parkingArea_id Integer,
+
+/*CONSTRAINT sanity check(cost <= ParkingArea.MaxPricePerDay),*/
+FOREIGN key (Car_id) REFERENCES Car(CID),
+Foreign key (parkingArea_id) REFERENCES ParkingArea(AID) on DELETE no ACTION,
+CONSTRAINT name PRIMARY key  (Car_id)
+);
+
+Create Table if not exists Car(
+CID Integer primary key AUTOINCREMENT,
+CreditCard INTEGER
+);
+
+Create Table if not exists GarbageCollection(
+StartTime datetime PRIMARY key,
+Endtime datetime CONSTRAINT sanity check (Endtime >= StartTime),
+G_company Integer,
+Foreign key (G_Company) REFERENCES GarbageCollectionCompany(GCID)
+);
+
+CREATE TABLE if not exists GarbageCollectionCompany(
+GCID Integer primary key AUTOINCREMENT,
+Name Text not NULL
+);
+
+Create Table if not exists TrashCan(
+TCID INTEGER PRIMARY key AUTOINCREMENT,
+TC_Neighborhood Integer,
+TC_Collection INTEGER,
+Foreign key (TC_Neighborhood) References Neighborhood(NID),
+Foreign key (TC_Collection) REFERENCES GarbageCollection(StartTime)
+);
+
+Create Table if not exists Address(
+StreetName Text,
+Number Integer,
+Door Text,
+CONSTRAINT name PRIMARY key(StreetName, Number, Door) 
+);
+
+Create table if not exists Apartment(
+A_Neighborhood Integer,
+Address REFERENCES Address,
+CONSTRAINT name PRIMARY key (Address),
+Foreign key (A_Neighborhood) REFERENCES Neighborhood(NID)
+);
+
+Create table if not exists Resident(
+RID Integer PRIMARY KEY AUTOINCREMENT,
+R_Address References Address
+);
