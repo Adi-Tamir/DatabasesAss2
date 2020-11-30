@@ -1,0 +1,148 @@
+
+CREATE TABLE IF NOT EXISTS "CellPhones" (
+	"PhoneNumber"	TEXT,
+	"PID"	INTEGER,
+	CONSTRAINT "prime" PRIMARY KEY("PhoneNumber","PID"),
+	FOREIGN KEY("PID") REFERENCES "EMPLOYEE"("EID") on Delete Cascade
+);
+CREATE TABLE IF NOT EXISTS "EMPLOYEE" (
+	"EID"	INTEGER,
+	"Birthdate"	datetime,
+	"FirstName"	TEXT NOT NULL,
+	"LastName"	TEXT NOT NULL,
+	"City"	Text NOT NULL,
+	"StreetName"	Text NOT NULL,
+	"Number"	INTEGER NOT NULL,
+	"Door"	Integer NOT NULL,
+	PRIMARY KEY("EID")
+);
+CREATE TABLE IF NOT EXISTS "OFFICIALEMPLOYEE" (
+	"EID"	Integer,
+	"Degree"	TEXT NOT NULL,
+	"StartWorkingDate"	datetime NOT NULL,
+	"Department"	INTEGER,
+	PRIMARY KEY("EID"),
+	FOREIGN KEY("Department") REFERENCES "Department"("DID") on DELETE no ACTION,
+	FOREIGN KEY("EID") REFERENCES "EMPLOYEE"("EID") on DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "CONSTRUCTOREMPLOYEE" (
+	"EID"	INTEGER,
+	"SalaryPerDay"	INTEGER NOT NULL,
+	"CompanyName"	Text NOT NULL,
+	PRIMARY KEY("EID"),
+	FOREIGN KEY("EID") REFERENCES "EMPLOYEE"("EID") on DELETE CASCADE
+);
+CREATE TABLE IF NOT EXISTS "CellPhone" (
+	"Number"	TEXT,
+	"EID"	INTEGER,
+	FOREIGN KEY("EID") REFERENCES "EMPLOYEE"("EID") on Delete Cascade,
+	CONSTRAINT "prime" PRIMARY KEY("Number","EID")
+);
+CREATE TABLE IF NOT EXISTS "Department" (
+	"DID"	Integer,
+	"Name"	Text NOT NULL,
+	"Description"	Text,
+	"ManagerID"	INTEGER,
+	FOREIGN KEY("ManagerID") REFERENCES "OFFICIALEMPLOYEE"("EID") on DELETE CASCADE on update CASCADE,
+	PRIMARY KEY("DID" AUTOINCREMENT)
+);
+CREATE TABLE IF NOT EXISTS "ProjectConstructorEmployee" (
+	"EID"	Integer,
+	"PID"	Integer,
+	"StartWorkingDate"	datetime NOT NULL,
+	"EndWorkingDate"	datetime NOT NULL,
+	"JobDescription"	Text,
+	FOREIGN KEY("EID") REFERENCES "CONSTRUCTOREMPLOYEE"("EID") on delete CASCADE on update CASCADE,
+	FOREIGN KEY("PID") REFERENCES "Project"("PID") on DELETE CASCADE on UPDATE CASCADE,
+	CONSTRAINT "dseTest" CHECK("StartWorkingDate" <= "EndWorkingDate"),
+	PRIMARY KEY("EID","PID")
+);
+CREATE TABLE IF NOT EXISTS "Project" (
+	"PID"	Integer,
+	"Name"	Text NOT NULL,
+	"Description"	Text,
+	"Budget"	Integer NOT NULL,
+	"NID"	Integer,
+	FOREIGN KEY("NID") REFERENCES "Neighborhood"("NID") on Delete CASCADE on update CASCADE,
+	PRIMARY KEY("PID" AUTOINCREMENT)
+);
+CREATE TABLE IF NOT EXISTS "Neighborhood" (
+	"NID"	Integer,
+	"Name"	Text NOT NULL,
+	PRIMARY KEY("NID" AUTOINCREMENT)
+);
+CREATE TABLE ParkingArea(
+AID Integer Primary key AUTOINCREMENT,
+MaxPricePerDay Integer not null,
+PricePerHour Integer not null 
+CONSTRAINT priceSanity check(MaxPricePerDay > PricePerHour),
+Name Text,
+NID Integer,
+Foreign key (NID) REFERENCES Neighborhood(NID) on DELETE CASCADE on update CASCADE
+);
+CREATE TABLE CarParking(
+StartTime datetime unique,
+EndTime datetime CONSTRAINT sanity check (Endtime >= StartTime),
+cost integer not null,
+CID Integer,
+AID Integer,
+/*CONSTRAINT sanity check(cost <= ParkingArea.MaxPricePerDay),*/
+FOREIGN key (CID) REFERENCES Cars(CID) on DELETE CASCADE on update CASCADE,
+Foreign key (AID) REFERENCES ParkingArea(AID) on DELETE RESTRICT on UPDATE CASCADE,
+CONSTRAINT name PRIMARY key  (CID)
+);
+CREATE TABLE IF NOT EXISTS "Cars" (
+	"CID"	Integer,
+	"CellPhoneNumber"	Text,
+	"CreditCard"	TEXT,
+	"ExpirationDate"	date,
+	"ThreeDigits"	Varchar(3),
+	"ID"	Varchar(9),
+	PRIMARY KEY("CID" AUTOINCREMENT)
+);
+CREATE TABLE GarbageCollection(
+StartTime datetime,
+Endtime datetime CONSTRAINT sanity check (Endtime >= StartTime),
+GCID Integer,
+TCID Integer,
+Foreign key (GCID) REFERENCES GarbageCollectionCompany(GCID) on DELETE CASCADE on update cascade,
+FOREIGN key (TCID) REFERENCES TrashCan(TCID) on delete Cascade on update CASCADE,
+CONSTRAINT name PRIMARY key(GCID, TCID, StartTime)
+);
+CREATE TABLE IF NOT EXISTS "GarbageCollectionCompany" (
+	"GCID"	Integer,
+	"Name"	Text NOT NULL,
+	PRIMARY KEY("GCID" AUTOINCREMENT)
+);
+CREATE TABLE IF NOT EXISTS "TrashCan" (
+	"TCID"	INTEGER,
+	"NID"	Integer,
+	FOREIGN KEY("NID") REFERENCES "Neighborhood"("NID") on delete RESTRICT on update CASCADE,
+	PRIMARY KEY("TCID" AUTOINCREMENT)
+);
+CREATE TABLE Apartment(
+StreetName Text not null,
+Number Integer not null,
+Door INTEGER,
+Type TEXT,
+SizeSquareMeter Integer not null CONSTRAINT size check (SizeSquareMeter>0),
+NID INTEGER,
+FOREIGN key (NID) REFERENCES Neighborhood(NID) on Delete RESTRICT on update CASCADE,
+CONSTRAINT name PRIMARY key(StreetName, Number, Door)
+/*Address REFERENCES Address,*/
+/*CONSTRAINT name PRIMARY key (Address),*/
+/*Foreign key (A_Neighborhood) REFERENCES Neighborhood(NID)*/
+);
+CREATE TABLE IF NOT EXISTS "Resident" (
+	"RID"	Integer,
+	"FirstName"	Text NOT NULL,
+	"LastName"	Text NOT NULL,
+	"Birthdate"	date NOT NULL,
+	"StreetName"	Text NOT NULL,
+	"Number"	INTEGER,
+	"Door"	Integer,
+	FOREIGN KEY("Door") REFERENCES "Apartment"("Door"),
+	FOREIGN KEY("StreetName") REFERENCES "Apartment"("StreetName"),
+	FOREIGN KEY("Number") REFERENCES "Apartment"("Number"),
+	PRIMARY KEY("RID" AUTOINCREMENT)
+);
